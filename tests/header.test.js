@@ -1,28 +1,25 @@
-const ppteer = require('puppeteer')
 const sessionFactory = require('./factories/sessionFactory')
 const userFactory = require('./factories/userFactory')
+const CustomPage = require('./helpers/customPage')
 
-let browser, page
+let customPage
 beforeEach(async() => {
-    browser = await ppteer.launch({
-        headless: false
-    })
-    page = await browser.newPage()
-    await page.goto('localhost:3000')
+    customPage = await CustomPage.build()
+    await customPage.goto('localhost:3000')
 })
 
 afterEach(async()=>{
-    await browser.close()
+    await customPage.close()
 })
 
 test('the header has  the correct text', async () => {
-    const text = await page.$eval('a.brand-logo', el => el.innerHTML)
+    const text = await customPage.$eval('a.brand-logo', el => el.innerHTML)
     expect(text).toEqual('Blogster')
 })
 
 test('clicking login starts oauth flow', async()=>{
-    await page.click('.right a')
-    const url = await page.url()
+    await customPage.click('.right a')
+    const url = await customPage.url()
     console.log(url)
 })
 
@@ -30,9 +27,9 @@ test.only('When signed in, shows logout button', async()=>{
     const user = await userFactory()
     const { session, sig } = sessionFactory(user)
 
-    await page.setCookie({ name: 'session', value: session})
-    await page.setCookie({ name: 'session.sig', value: sig})
-    await page.goto('localhost:3000')
+    await customPage.setCookie({ name: 'session', value: session})
+    await customPage.setCookie({ name: 'session.sig', value: sig})
+    await customPage.goto('localhost:3000')
 
     // chromium take so long to generate the page
     // and the test is not see the element 'a[href="/auth/logout"]'
@@ -42,7 +39,7 @@ test.only('When signed in, shows logout button', async()=>{
     // if waiting more than 5000ms, we will take timeout
     // and test is fail
     // -> let's try :))
-    await page.waitFor('a[href="/auth/logout"]')
-    const text = await page.$eval('a[href="/auth/logout"]', el => el.innerHTML)
+    await customPage.waitFor('a[href="/auth/logout"]')
+    const text = await customPage.$eval('a[href="/auth/logout"]', el => el.innerHTML)
     expect(text).toEqual('Logout')
 })
