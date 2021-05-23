@@ -17,6 +17,7 @@ env:
 # if package.json be updated, travis still copy the cache folders
 # and npm run install will update node_modules
 
+
 cache:
   directories:
     - node_modules
