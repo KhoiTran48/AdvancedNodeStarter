@@ -1,0 +1,33 @@
+language: node_js
+# node version
+node_js:
+  - "8"
+# OS for virtual machine
+dist: dustry
+services:
+  - mongodb
+  - redis-server
+env:
+  # base on NODE_ENV, program will know which config file be loaded
+  - NODE_ENV=ci
+  - PORT=3000
+
+# each time we deploy, travis will remove everything on virtual machine
+# and copy the cache folders to virtual machine
+# if package.json be updated, travis still copy the cache folders
+# and npm run install will update node_modules
+cache:
+  directories:
+    - node_modules
+    - client/node_modules
+install:
+  - npm install
+script:
+  # start up the cmd (npm run start) in the background
+  # and the current terminal is terminated,
+  # do not exit that cmd, keep server running, no matter what
+  - nohup npm run start &
+
+  # wait for server starting
+  - sleep 3
+  - npm run test
